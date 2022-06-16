@@ -1,7 +1,3 @@
 class_index;class_name;keywords
-1;World;Election State President Police Politics Security War Nuclear Democracy Militant Kill
-2;Sports;Olympic Football Sport League Baseball Rugby Tickets Basketball Games Championship NBA MLB Athlete PGA Golf Training Cup Team Victory Defeat Race Competition NHL Hockey Score Goal Soccer League FIFA Coach Match Season
-3;Business;Company Market Oil Consumers Exchange Business Product Price Billion Stocks
-4;Science/Technology;Laboratory Computers Science Technology Web Google Microsoft Economy Software Investment Space Developer Electrical NASA Apple Samsung Netflix Dinosaur
-5;Leisure;Drinks Pool Friends Cinema Cafe Bar Alcohol
-6;Accident;Victim Casualties Died Killed Damage Harm Hospital Hospitalized Wounded Succumbed Unscathed Evacuate Rescue Ambulance Aid
+1;RealAccidents;crash haiti fire rescue quake flood plane earthquak water hospital pilot damage port-au-princ accident airport storm tornado injury
+2;FakeAccidents;police, president, u.s., state, govern ,iraq, family, attack
