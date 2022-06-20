@@ -23,6 +23,10 @@ class Preprocessor:
     def __init__(self, stemmer=None, stopwords=None, re_pattern=None):
         self._stemmer = stemmer
         self._re_pattern = re_pattern
+        self._positive_keywords = []
+        self._negative_keywords = []
+        self._positive_keywords_threshold = 0
+        self._negative_keywords_threshold = 0
 
         if stemmer is not None and stopwords is not None:
             assert isinstance(stopwords, list), 'stopwords must be a list'
@@ -57,6 +61,18 @@ class Preprocessor:
         if self._re_pattern is not None:
             words = [w for w in words if self._re_pattern.match(w)]
 
+        return words
+
+
+    def stem_word_list(self, words: list):
+        """
+        Stems a list of words. If stemmer is None, words will be made
+        lower case.
+        """
+        if self._stemmer is not None:
+            words = [self._stemmer.stem(w) for w in words]
+        else:
+            words = [w.lower() for w in words]
         return words
 
 
@@ -114,6 +130,66 @@ class Preprocessor:
                 freqs += self._document_frequency_helper(doc)
         return freqs
 
+    def init_keyword_filter(self, positive: list, pos_threshold: int, negative: list, neg_threshold: int):
+        """
+        Initialises the Preprocessor's keyword filter. Must happen
+        after the __init__ since the keywords are preprocessed by the
+        same Preprocessor.
+
+        positive: list of keywords that should appear in the document
+        pos_threshold: minimum amount of positive keywords that the document must contain
+        negative: list of keywords that should not appear in the document
+        neg_threshold: maximum amount of negative keywords that the document may contain
+
+        """
+        # convert to set in case multiple keywords get stemmed to the same stem
+        self._positive_keywords = list(set(self.stem_word_list(positive)))
+        self._negative_keywords = list(set(self.stem_word_list(negative)))
+        self._positive_keywords_threshold = pos_threshold
+        self._negative_keywords_threshold = neg_threshold
+
+    def keyword_filter(self, doc: str):
+        """
+        Returns a boolean value based on whether or not a document contains
+        certain keywords.
+
+        doc: string, document to check
+        """
+        words = set(self.word_split(doc))
+        # count how many positive keywords occur at least once in the document
+        pos_in_doc = 0
+        for word in self._positive_keywords:
+            if word in words:
+                pos_in_doc += 1
+        # count how many positive keywords occur at least once in the document
+        neg_in_doc = 0
+        for word in self._negative_keywords:
+            if word in words:
+                neg_in_doc += 1
+
+        if pos_in_doc >= self._positive_keywords_threshold and neg_in_doc < self._negative_keywords_threshold:
+            return True
+        return False
+
+    def batch_keyword_filter(self, docs: list, show_progress=False):
+        """
+        Applies the keyword_filter to a list of documents. Returns a
+        list of boolean values the same length as docs.
+
+        docs: list of documents to check
+        show_progress: boolean, controls whether or not a progress bar shows
+        """
+        matches = list()
+
+        # filter all docs with a visual progress bar
+        if show_progress:
+            for i in tqdm(range(len(docs))):
+                matches.append(self.keyword_filter(docs[i]))
+        # filter all docs without a visual progress bar
+        else:
+            matches = [self.keyword_filter(doc) for doc in docs]
+        return matches
+
 class tf_idf_document_scorer:
     """
     Calculates a score for a document that represents how likely
@@ -159,7 +235,7 @@ class tf_idf_document_scorer:
         for word, count in word_count.items():
             if word in self._weights:
                 score += count * self._weights[word]
-        return score
+        return score#/len(doc) # normalise for document length
 
     def batch_score(self, docs: list, show_progress=False):
         """
