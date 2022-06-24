@@ -12,7 +12,7 @@ Run het script in de terminal om te labelen.
 """
 
 # vul hier de locatie van het CSV bestand in
-filename = "preprocessed/0-10000.csv"
+filename = "divided2/0-503.csv"
 
 import pandas as pd
 import numpy as np
@@ -31,7 +31,7 @@ class bcolors:
     BOLD = "\033[1m"
     UNDERLINE = "\033[4m"
 
-def repr_article(article, highlights, id, label):
+def repr_article(article, highlights, encoding, id, label):
     wipe_screen()
     print(bcolors.HEADER + highlights + bcolors.ENDC)
     print()
@@ -60,7 +60,7 @@ def wipe_screen():
     os.system("cls" if os.name == "nt" else "clear")
 
 def main():
-    df = pd.read_csv(filename)
+    df = pd.read_csv(filename, index_col=0)
 
     unlabeled_rows = df.index[df['label'].isnull()].tolist()
     changes_made = False
@@ -72,7 +72,7 @@ def main():
         repr_article(*df.loc[index].values.flatten().tolist())
 
         # ask user for input
-        answer = input('enter 0 to label as NOT ACCIDENT, 1 to label as ACCIDENT, enter anything else to quit >')
+        answer = input('enter 0 to label as NOT WORKPLACE, 1 to label as WORKPLACE, enter anything else to quit >')
         if answer == '0' or answer == '1':
             # add label to dataframe
             df['label'][index] = int(answer)
@@ -83,7 +83,7 @@ def main():
 
     wipe_screen()
     if changes_made:
-        df.to_csv(filename, index=False)
+        df.to_csv(filename, index=True)
         print('Written to:', filename)
 
     print(np.sum(df['label'] == 0), 'of', len(df), 'rows labeled 0')
